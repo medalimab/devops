@@ -21,8 +21,6 @@ Ce projet est une application full-stack qui consiste en un client React et un s
   - [Prérequis pour la CI (Jenkins)](#prérequis-pour-la-ci-jenkins)
   - [Jenkinsfile (pipeline) — résumé et conseils](#jenkinsfile-pipeline--résumé-et-conseils)
   - [Intégration de Trivy (analyse de vulnérabilités)](#intégration-de-trivy-analyse-de-vulnérabilités)
-  - [GitLab CI (exemple `.gitlab-ci.yml`)](#gitlab-ci-exemple-gitlab-ciyml)
-  - [Livrables demandés](#livrables-demandés)
   - [Comment Exécuter le Projet](#comment-exécuter-le-projet)
 
 ## Technologies Utilisées
@@ -97,7 +95,7 @@ stage('Build & Push Server Image') {
 ### Capture d'écran - Pipeline Jenkins
 Voici une capture d'écran de l'exécution de la pipeline Jenkins (fichier fourni : `jenkins.png`) :
 
-![Pipeline Jenkins](jenkins.png)
+![Pipeline Jenkins](jenkins.PNG)
 
 Sécurité et bonnes pratiques :
 - Ne mettez jamais vos identifiants Docker Hub dans le dépôt. Utilisez les `credentials` Jenkins.
@@ -159,50 +157,7 @@ Bonnes pratiques liées à Trivy :
 - Si Trivy détecte une vulnérabilité critique, priorisez les actions : mettre à jour l'image de base (ex. `node:lts-alpine` → version plus récente), mettre à jour paquets, ou remplacer la dépendance vulnérable.
 - Exemple de correction : remplacer `node:lts-alpine` par une image plus récente ou appliquer `npm audit fix` dans le code, puis rebuild.
 
-## GitLab CI (exemple `.gitlab-ci.yml`)
-Alternative à Jenkins — CI native GitLab. Variables CI à définir dans `Settings → CI/CD → Variables` : `DOCKERHUB_USER`, `DOCKERHUB_TOKEN`, `IMAGE_SERVER`, `IMAGE_CLIENT`.
 
-Exemple minimal (extrait) :
-
-```yaml
-image: docker:24
-services:
-  - docker:24-dind
-variables:
-  DOCKER_HOST: tcp://docker:2375
-  DOCKER_TLS_CERTDIR: ""
-  DOCKER_BUILDKIT: "1"
-
-stages: [build_push]
-
-.docker_login: &docker_login
-  - echo "$DOCKERHUB_TOKEN" | docker login -u "$DOCKERHUB_USER" --password-stdin
-
-build_push_server:
-  stage: build_push
-  rules:
-    - changes: ["server/**/*"]
-  script:
-    - *docker_login
-    - docker build -t "$DOCKERHUB_USER/mern_server:$CI_COMMIT_SHORT_SHA" server
-    - docker push "$DOCKERHUB_USER/mern_server:$CI_COMMIT_SHORT_SHA"
-
-build_push_client:
-  stage: build_push
-  rules:
-    - changes: ["client/**/*"]
-  script:
-    - *docker_login
-    - docker build -t "$DOCKERHUB_USER/mern_client:$CI_COMMIT_SHORT_SHA" client
-    - docker push "$DOCKERHUB_USER/mern_client:$CI_COMMIT_SHORT_SHA"
-```
-
-## Livrables demandés
-- `Jenkinsfile` fonctionnel (exécution partielle par dossier + nettoyage).
-- `.gitlab-ci.yml` fonctionnel (ex. ci-dessus) si vous fournissez une alternative GitLab CI.
-- Dockerfiles pour `client` et `server`.
-- `docker-compose.yml` à la racine pour exécuter localement (client, server, mongodb).
-- `README.md` mis à jour (ce fichier) avec captures d'écran montrant l'exécution et les rapports Trivy.
 
 
 ## Comment Exécuter le Projet
